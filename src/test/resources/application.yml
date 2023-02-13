@@ -1,0 +1,26 @@
+
+data-bin:
+  resource:
+    name: countries
+    seed:
+      AC:
+        description: A Country
+      NC:
+        description: No Country
+    embedded:
+    - name: coins
+      service: coins
+      request:
+        query:
+        - name: country
+          field: id
+    - name: languages
+      service: languages
+      request:
+        query:
+        - name: country
+          field: id
+logging:
+  level:
+   root: INFO
+
