@@ -1,20 +1,16 @@
-name: Maven Package
-
-on:
-  [push]
+name: Selkie
 
 jobs:
   build:
+    on: [push]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    outputs:
-      jar_version: ${{ steps.bump.outputs.jar_version }}
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 8
+    - name: Set up JDK 17
       uses: actions/setup-java@v2
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
@@ -25,3 +21,9 @@ jobs:
 
     - name: Build a package
       run: ./mvnw -B package
+
+    - name: Test
+      run: ./mvnw -B test
+
+    - name: Build image
+      run: ./mvnw -B spring-boot:build-image
