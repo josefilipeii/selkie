@@ -1,8 +1,7 @@
 name: Selkie
-
+on: [push]
 jobs:
   build:
-    on: [push]
     runs-on: ubuntu-latest
     permissions:
       contents: read
