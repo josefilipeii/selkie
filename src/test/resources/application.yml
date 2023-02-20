@@ -7,6 +7,16 @@ data-bin:
         description: A Country
       NC:
         description: No Country
+      ANC:
+        description: Another country with meta
+    meta:
+      ANC:
+        coin:
+          - EUR
+          - BTC
+        language:
+          - ESP
+          - PT
     embedded:
     - name: coins
       service: coins
@@ -22,5 +32,5 @@ data-bin:
           field: id
 logging:
   level:
-   root: INFO
+    root: INFO
 

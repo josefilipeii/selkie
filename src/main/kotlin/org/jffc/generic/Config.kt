@@ -8,6 +8,7 @@ data class Config(var resource: Resource = Resource())
 data class Resource(
     val name: String = "",
     val seed: Map<String, Map<String, Any>> = emptyMap(),
+    val meta: Map<String, Map<String, List<Any>>> = emptyMap(),
     val embedded: Set<Embedded> = emptySet()
 )
 

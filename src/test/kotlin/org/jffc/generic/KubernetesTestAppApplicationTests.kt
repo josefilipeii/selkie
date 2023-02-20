@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -73,24 +74,26 @@ class KubernetesTestAppApplicationTests {
         whenever(discoveryClient.getInstances(eq("coins"))).thenReturn(listOf(mockServiceInstance("coins")))
         whenever(discoveryClient.getInstances(eq("languages"))).thenReturn(listOf(mockServiceInstance("languages")))
 
-        wireMockServer.stubFor(WireMock.get("/coins").withQueryParam("country", equalTo("AC"))
+        wireMockServer.stubFor(WireMock.get(urlPathEqualTo("/coins")).withQueryParam("country", equalTo("AC"))
             .willReturn(WireMock.aResponse()
                 .withStatus(200)
+                .withHeader("content-type", "application/json")
                 .withBody("""
-                    {
-                     "id": "BTC"
+                    [{
+                     "id": "BTC",
                      "description": "Bitcoin"
-                    }
+                    }]
                 """.trimIndent())
 
             ))
-        wireMockServer.stubFor(WireMock.get("/languages").withQueryParam("country", equalTo("AC")).willReturn(WireMock.aResponse()
+        wireMockServer.stubFor(WireMock.get(urlPathEqualTo("/languages")).withQueryParam("country", equalTo("AC")).willReturn(WireMock.aResponse()
             .withStatus(200)
+            .withHeader("content-type", "application/json")
             .withBody("""
-                    {
-                     "id": "ESP"
+                    [{
+                     "id": "ESP",
                      "description": "Esperanto"
-                    }
+                    }]
                 """.trimIndent())
 
         ))
@@ -104,7 +107,12 @@ class KubernetesTestAppApplicationTests {
             .expectBody()
             .consumeWith { result ->
                 val result = reader.readValue<Any>(result.responseBody)
-                assertThat(result).isEqualTo(mapOf("id" to "AC", "description" to "A Country"))
+                assertThat(result).isEqualTo(mapOf("id" to "AC", "description" to "A Country",
+                    "_embedded" to mapOf<String, Any>(
+                        "coins" to listOf(mapOf("description" to "Bitcoin", "id" to "BTC")),
+                        "languages" to listOf(mapOf<String, Any>("description" to "Esperanto", "id" to "ESP"))
+                    )
+                ))
 
             }
 
@@ -123,6 +131,7 @@ class KubernetesTestAppApplicationTests {
                 assertThat(result).isEqualTo(
                     setOf(
                     mapOf("id" to "AC", "description" to "A Country"),
+                    mapOf("id" to "ANC", "description" to "Another country with meta"),
                     mapOf("id" to "NC", "description" to "No Country")
                 )
                 )
@@ -149,6 +158,31 @@ class KubernetesTestAppApplicationTests {
                 assertThat(result).isEqualTo(
                     setOf(
                         mapOf("id" to "AC", "description" to "A Country")
+                    )
+                )
+
+            }
+
+    }
+
+    @Test
+    fun `should list resources with query param (meta)`() {
+
+        webTestClient.get()
+            .uri{
+                    uri -> uri.path("/countries")
+                .queryParam("coin", "BTC")
+                .build()
+            }
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith { result ->
+                val result = setReader.readValue<Any>(result.responseBody)
+                assertThat(result).isEqualTo(
+                    setOf(
+                        mapOf("id" to "ANC", "description" to "Another country with meta")
                     )
                 )
 

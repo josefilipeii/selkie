@@ -6,14 +6,15 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
-interface SubResourceFetcher{
-    fun find(service: String, request: Request, parent: Map<String, Any>): Mono<Map<String, Any>>
+interface SubResourceFetcher {
+    fun find(service: String, request: Request, parent: Map<String, Any>): Mono<Map<String, List<Any>>>
 }
 
-class K8sSubResourceFetcher(private val discoveryClient: DiscoveryClient,
-                            private val webClientBuilder: WebClient.Builder,
-                            ): SubResourceFetcher{
-    override fun find(service: String, request: Request, parent: Map<String, Any>): Mono<Map<String, Any>> {
+class K8sSubResourceFetcher(
+    private val discoveryClient: DiscoveryClient,
+    private val webClientBuilder: WebClient.Builder,
+) : SubResourceFetcher {
+    override fun find(service: String, request: Request, parent: Map<String, Any>): Mono<Map<String, List<Any>>> {
         val instances = discoveryClient.getInstances(service)
         return if (instances.isNotEmpty()) {
             instances
@@ -23,8 +24,9 @@ class K8sSubResourceFetcher(private val discoveryClient: DiscoveryClient,
                 .applyRequest(service, parent, request)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(Map::class.java)
-                .map { it as Map<String, Any> }
+                .bodyToMono(List::class.java)
+                .map { it as List<Any> }
+                .map { mapOf(service to it) }
         } else {
             Mono.empty()
         }
@@ -35,9 +37,13 @@ class K8sSubResourceFetcher(private val discoveryClient: DiscoveryClient,
 }
 
 
-private fun WebClient.RequestHeadersUriSpec<*>.applyRequest(service: String, parent: Map<String, Any>, request: Request) = this.uri { builder ->
+private fun WebClient.RequestHeadersUriSpec<*>.applyRequest(
+    service: String,
+    parent: Map<String, Any>,
+    request: Request
+) = this.uri { builder ->
     val query: Map<String, List<Any>> = request.query.map { Pair(it.name, parent[it.field]) }
-        .associateBy({it.first}, { pair -> pair.second?.let { listOf(it) } ?: emptyList() })
+        .associateBy({ it.first }, { pair -> pair.second?.let { listOf(it) } ?: emptyList() })
         .filterValues { it.isNotEmpty() }
     builder.queryParams(LinkedMultiValueMap(query as MutableMap<String, MutableList<String>>))
         .path(service)

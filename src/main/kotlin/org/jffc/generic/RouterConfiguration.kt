@@ -16,9 +16,10 @@ import org.springframework.web.reactive.function.server.ServerResponse
 @Configuration
 @EnableDiscoveryClient
 @EnableConfigurationProperties(Config::class)
-class RouterConfiguration(private val config: Config,
-                          private val discoveryClient: DiscoveryClient) {
-
+class RouterConfiguration(
+    private val config: Config,
+    private val discoveryClient: DiscoveryClient
+) {
 
 
     @Bean
@@ -28,25 +29,13 @@ class RouterConfiguration(private val config: Config,
     fun composedRoutes() =
         RouterFunctions.route(
             RequestPredicates.GET("/${config.resource.name}/{id}"),
-            ResourceHandler(config.resource, subResourceFetcher())
-        )
-            .and(
-                RouterFunctions.route(
-                    RequestPredicates.GET("/${config.resource.name}")
-                )
-                { req ->
-                    val query = req.queryParams()
-                    val map = config.resource.seed
-                        .filterValues { it.matchQuery(query) }
-                    .entries
-                        .map { mapOf("id" to it.key) + it.value }.toSet()
-                    ServerResponse.ok().body(BodyInserters.fromValue(map)) }
+            DetailResourceHandler(config.resource, subResourceFetcher())
+        ).and(
+            RouterFunctions.route(
+                RequestPredicates.GET("/${config.resource.name}"),
+                ListResourceHandler(config)
             )
+        )
 
 }
-
-private fun  Map<String,Any>.matchQuery(query: MultiValueMap<String, String>): Boolean = query.isEmpty() ||
-        this.entries.any {
-            //only first param
-            query.getFirst(it.key)?.equals(it.value) ?: false }
 
