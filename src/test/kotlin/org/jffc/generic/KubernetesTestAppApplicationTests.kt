@@ -51,10 +51,8 @@ class KubernetesTestAppApplicationTests {
     @AfterEach
     fun tearDown() = wireMockServer.stop()
 
-
     @Test
     fun `should load resource by id without sub resources`() {
-
         webTestClient.get()
             .uri("/countries/NC")
             .exchange()
@@ -64,9 +62,7 @@ class KubernetesTestAppApplicationTests {
             .consumeWith { result ->
                 val result = reader.readValue<Any>(result.responseBody)
                 assertThat(result).isEqualTo(mapOf("id" to "NC", "description" to "No Country"))
-
             }
-
     }
 
     @Test
@@ -74,30 +70,39 @@ class KubernetesTestAppApplicationTests {
         whenever(discoveryClient.getInstances(eq("coins"))).thenReturn(listOf(mockServiceInstance("coins")))
         whenever(discoveryClient.getInstances(eq("languages"))).thenReturn(listOf(mockServiceInstance("languages")))
 
-        wireMockServer.stubFor(WireMock.get(urlPathEqualTo("/coins")).withQueryParam("country", equalTo("AC"))
-            .willReturn(WireMock.aResponse()
-                .withStatus(200)
-                .withHeader("content-type", "application/json")
-                .withBody("""
+        wireMockServer.stubFor(
+            WireMock.get(urlPathEqualTo("/coins")).withQueryParam("country", equalTo("AC"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("content-type", "application/json")
+                        .withBody(
+                            """
                     [{
                      "id": "BTC",
                      "description": "Bitcoin"
                     }]
-                """.trimIndent())
+                            """.trimIndent()
+                        )
 
-            ))
-        wireMockServer.stubFor(WireMock.get(urlPathEqualTo("/languages")).withQueryParam("country", equalTo("AC")).willReturn(WireMock.aResponse()
-            .withStatus(200)
-            .withHeader("content-type", "application/json")
-            .withBody("""
+                )
+        )
+        wireMockServer.stubFor(
+            WireMock.get(urlPathEqualTo("/languages")).withQueryParam("country", equalTo("AC")).willReturn(
+                WireMock.aResponse()
+                    .withStatus(200)
+                    .withHeader("content-type", "application/json")
+                    .withBody(
+                        """
                     [{
                      "id": "ESP",
                      "description": "Esperanto"
                     }]
-                """.trimIndent())
+                        """.trimIndent()
+                    )
 
-        ))
-
+            )
+        )
 
         webTestClient.get()
             .uri("/countries/AC")
@@ -107,15 +112,17 @@ class KubernetesTestAppApplicationTests {
             .expectBody()
             .consumeWith { result ->
                 val result = reader.readValue<Any>(result.responseBody)
-                assertThat(result).isEqualTo(mapOf("id" to "AC", "description" to "A Country",
-                    "_embedded" to mapOf<String, Any>(
-                        "coins" to listOf(mapOf("description" to "Bitcoin", "id" to "BTC")),
-                        "languages" to listOf(mapOf<String, Any>("description" to "Esperanto", "id" to "ESP"))
+                assertThat(result).isEqualTo(
+                    mapOf(
+                        "id" to "AC",
+                        "description" to "A Country",
+                        "_embedded" to mapOf<String, Any>(
+                            "coins" to listOf(mapOf("description" to "Bitcoin", "id" to "BTC")),
+                            "languages" to listOf(mapOf<String, Any>("description" to "Esperanto", "id" to "ESP"))
+                        )
                     )
-                ))
-
+                )
             }
-
     }
 
     @Test
@@ -130,24 +137,22 @@ class KubernetesTestAppApplicationTests {
                 val result = setReader.readValue<Any>(result.responseBody)
                 assertThat(result).isEqualTo(
                     setOf(
-                    mapOf("id" to "AC", "description" to "A Country"),
-                    mapOf("id" to "ANC", "description" to "Another country with meta"),
-                    mapOf("id" to "NC", "description" to "No Country")
+                        mapOf("id" to "AC", "description" to "A Country"),
+                        mapOf("id" to "ANC", "description" to "Another country with meta"),
+                        mapOf("id" to "NC", "description" to "No Country")
+                    )
                 )
-                )
-
             }
-
     }
 
     @Test
     fun `should list resources with query param`() {
-
         webTestClient.get()
-            .uri{
-                uri -> uri.path("/countries")
-                .queryParam("description", "A Country")
-                .build()
+            .uri {
+                    uri ->
+                uri.path("/countries")
+                    .queryParam("description", "A Country")
+                    .build()
             }
             .exchange()
             .expectStatus()
@@ -160,19 +165,17 @@ class KubernetesTestAppApplicationTests {
                         mapOf("id" to "AC", "description" to "A Country")
                     )
                 )
-
             }
-
     }
 
     @Test
     fun `should list resources with query param (meta)`() {
-
         webTestClient.get()
-            .uri{
-                    uri -> uri.path("/countries")
-                .queryParam("coin", "BTC")
-                .build()
+            .uri {
+                    uri ->
+                uri.path("/countries")
+                    .queryParam("coin", "BTC")
+                    .build()
             }
             .exchange()
             .expectStatus()
@@ -185,14 +188,11 @@ class KubernetesTestAppApplicationTests {
                         mapOf("id" to "ANC", "description" to "Another country with meta")
                     )
                 )
-
             }
-
     }
 
     @Test
     fun `should not load resource not configured`() {
-
         webTestClient.get()
             .uri("/countries/NR")
             .exchange()
@@ -202,7 +202,6 @@ class KubernetesTestAppApplicationTests {
 
     @Test
     fun `should load resource by id with sub resources`() {
-
         webTestClient.get()
             .uri("/countries/AC")
             .exchange()
@@ -212,13 +211,11 @@ class KubernetesTestAppApplicationTests {
             .consumeWith { result ->
                 val result = reader.readValue<Any>(result.responseBody)
                 assertThat(result).isEqualTo(mapOf("id" to "AC", "description" to "A Country"))
-
             }
-
     }
 
     fun mockServiceInstance(serviceName: String): ServiceInstance = DefaultServiceInstance(
-       "${System.currentTimeMillis()}",
+        "${System.currentTimeMillis()}",
         serviceName,
         "localhost",
         8090,
@@ -228,5 +225,4 @@ class KubernetesTestAppApplicationTests {
     inline fun <T> whenever(methodCall: T): OngoingStubbing<T> {
         return Mockito.`when`(methodCall)!!
     }
-
 }

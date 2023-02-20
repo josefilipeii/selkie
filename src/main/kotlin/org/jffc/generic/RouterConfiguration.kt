@@ -5,13 +5,9 @@ import org.springframework.cloud.client.discovery.DiscoveryClient
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.util.MultiValueMap
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.server.RequestPredicates
 import org.springframework.web.reactive.function.server.RouterFunctions
-import org.springframework.web.reactive.function.server.ServerResponse
-
 
 @Configuration
 @EnableDiscoveryClient
@@ -20,7 +16,6 @@ class RouterConfiguration(
     private val config: Config,
     private val discoveryClient: DiscoveryClient
 ) {
-
 
     @Bean
     fun subResourceFetcher(): SubResourceFetcher = K8sSubResourceFetcher(discoveryClient, WebClient.builder())
@@ -36,6 +31,4 @@ class RouterConfiguration(
                 ListResourceHandler(config)
             )
         )
-
 }
-

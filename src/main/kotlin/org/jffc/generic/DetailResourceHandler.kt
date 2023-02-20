@@ -11,13 +11,11 @@ import reactor.core.publisher.Mono
 class DetailResourceHandler(val resource: Resource, val subResourceFetcher: SubResourceFetcher) :
     HandlerFunction<ServerResponse> {
 
-
     override fun handle(request: ServerRequest): Mono<ServerResponse> {
         val id = request.pathVariable("id")
         val seedData = resource.seed[id]
         return if (null != seedData) {
             val body = mapOf<String, Any>("id" to id).plus(seedData)
-
 
             Flux.fromIterable(resource.embedded)
                 .parallel()
@@ -25,21 +23,16 @@ class DetailResourceHandler(val resource: Resource, val subResourceFetcher: SubR
                 .sequential()
                 .collectList()
                 .map {
-                    body + (it
-                        .takeIf { it.isNotEmpty() }
-                    ?.let { mapOf<String, Any>("_embedded" to it.reduce{ t, u -> t + u}) }
-                        ?: emptyMap<String,Any>())
+                    body + (
+                        it
+                            .takeIf { it.isNotEmpty() }
+                            ?.let { mapOf<String, Any>("_embedded" to it.reduce { t, u -> t + u }) }
+                            ?: emptyMap<String, Any>()
+                        )
                 }
-                .flatMap {  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(it)) }
-
+                .flatMap { ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(it)) }
         } else {
             ServerResponse.notFound().build()
         }
     }
 }
-
-
-
-
-
-

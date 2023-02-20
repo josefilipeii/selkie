@@ -25,13 +25,16 @@ class ListResourceHandler(val config: Config) : HandlerFunction<ServerResponse> 
 }
 
 private fun Map.Entry<String, Map<String, List<Any>>>.matchQuery(query: MultiValueMap<String, String>) =
-    this.value.filter { met -> query.get(met.key)
-        ?.let { (it.toSet() intersect met.value.toSet())
-            .isNotEmpty() } ?: false }.isNotEmpty()
+    this.value.filter { met ->
+        query.get(met.key)
+            ?.let {
+                (it.toSet() intersect met.value.toSet())
+                    .isNotEmpty()
+            } ?: false
+    }.isNotEmpty()
 
 private fun Map<String, Any>.matchQuery(query: MultiValueMap<String, String>): Boolean = query.isEmpty() ||
-        this.entries.any {
-            //only first param
-            query.getFirst(it.key)?.equals(it.value) ?: false
-        }
-
+    this.entries.any {
+        // only first param
+        query.getFirst(it.key)?.equals(it.value) ?: false
+    }

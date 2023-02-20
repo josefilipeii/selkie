@@ -15,10 +15,9 @@ data class Resource(
 data class Embedded(
     val name: String = "",
     val service: String = "",
-    val request: Request = Request(),
+    val request: Request = Request()
 )
 
 data class Request(val query: Set<FieldDescriptor> = emptySet())
 
 data class FieldDescriptor(val name: String, val field: String)
-

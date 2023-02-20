@@ -12,7 +12,7 @@ interface SubResourceFetcher {
 
 class K8sSubResourceFetcher(
     private val discoveryClient: DiscoveryClient,
-    private val webClientBuilder: WebClient.Builder,
+    private val webClientBuilder: WebClient.Builder
 ) : SubResourceFetcher {
     override fun find(service: String, request: Request, parent: Map<String, Any>): Mono<Map<String, List<Any>>> {
         val instances = discoveryClient.getInstances(service)
@@ -30,12 +30,8 @@ class K8sSubResourceFetcher(
         } else {
             Mono.empty()
         }
-
     }
-
-
 }
-
 
 private fun WebClient.RequestHeadersUriSpec<*>.applyRequest(
     service: String,
