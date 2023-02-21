@@ -16,5 +16,14 @@ jobs:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '17'
 
+    - name: Generate image name
+      run: echo "josefilipeii/selkie:${{github.sha}}" > .docker-image
+
+    - name: Set Image name
+      id: set-image-name
+      run: |
+            value=`cat .docker-image`
+            echo "LOCAL_IMAGE_NAME=josefilipeii/selkie:${{github.sha}}" >> $GITHUB_OUTPUT
+
     - name: Build image
-      run: ./mvnw -B spring-boot:build-image -Dspring-boot.build-image.imageName=josefilipeii/selkie:${{github.sha}}
+      run: ./mvnw -B spring-boot:build-image -Dspring-boot.build-image.imageName=${{ steps.set-image-name.outputs.LOCAL_IMAGE_NAME }}
