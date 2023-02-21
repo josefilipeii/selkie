@@ -9,8 +9,18 @@ on:
 
 jobs:
   build-image:
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/build-docker-image.yml
     permissions:
       contents: read
       packages: write
+    with:
+      artifact-name: selkie
+      artifact-version: ${{github.event.release.tag_name}}
+      artifact-repo: josefilipeii
+      push_docker: true
+    secrets:
+      docker-hub-user: ${{secrets.DOCKERHUB_USERNAME}}
+      docker-hub-secret: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+
 

@@ -1,14 +1,24 @@
 # This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
 # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
 
-name: Selkie Build
+name: Selkie push
 
-on: [push]
+on: push
 
 jobs:
   build-image:
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/build-docker-image.yml
     permissions:
       contents: read
       packages: write
+    with:
+      artifact-name: selkie
+      artifact-repo: josefilipeii
+      artifact-version: ${{github.sha}}
+      push_docker: false
+    secrets:
+      docker-hub-user: ${{secrets.DOCKERHUB_USERNAME}}
+      docker-hub-secret: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+
 
