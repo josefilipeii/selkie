@@ -17,4 +17,4 @@ jobs:
         java-version: '17'
 
     - name: Build image
-      run: ./mvnw -B spring-boot:build-image
+      run: ./mvnw -B spring-boot:build-image -Dspring-boot.build-image.imageName=josefilipeii/selkie:${{github.sha}}
